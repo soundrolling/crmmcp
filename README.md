@@ -6,8 +6,8 @@ A Model Context Protocol (MCP) server for the Medicus CRM system, supporting bot
 
 - 18 CRM tools for managing companies, contacts, and related data
 - Supabase integration for data persistence
-- Local STDIO transport for development
-- Remote HTTP transport for production deployment
+- Local STDIO transport for development (full functionality)
+- Remote HTTP transport for production deployment (tool listing + basic protocol)
 - Token-based authentication for security
 
 ## Local Development
@@ -52,6 +52,8 @@ Then test with MCP Inspector:
 ```bash
 npx @modelcontextprotocol/inspector http://localhost:3000/api/mcp?token=your_token
 ```
+
+**Note**: The HTTP endpoint currently supports tool listing and basic MCP protocol. For full tool execution, use the STDIO mode locally.
 
 ## Deployment to Vercel
 
