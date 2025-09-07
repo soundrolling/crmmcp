@@ -36,6 +36,23 @@ async function handleMcpRequest(req: NextRequest) {
     }
 
     // Handle specific MCP methods
+    if (mcpRequest.method === "initialize") {
+      return NextResponse.json({
+        jsonrpc: "2.0",
+        id: mcpRequest.id,
+        result: {
+          protocolVersion: "2024-11-05",
+          capabilities: {
+            tools: {}
+          },
+          serverInfo: {
+            name: "medicus-crm",
+            version: "0.1.0"
+          }
+        }
+      });
+    }
+
     if (mcpRequest.method === "tools/list") {
       // Return list of available tools
       return NextResponse.json({
@@ -106,13 +123,19 @@ export async function GET(req: NextRequest) {
     return resp; 
   }
   
-  // For GET requests, return server info
+  // For GET requests, return server info in MCP format
   return NextResponse.json({
-    name: "medicus-crm",
-    version: "0.1.0",
-    protocol: "mcp",
-    capabilities: {
-      tools: true
+    jsonrpc: "2.0",
+    id: 1,
+    result: {
+      protocolVersion: "2024-11-05",
+      capabilities: {
+        tools: {}
+      },
+      serverInfo: {
+        name: "medicus-crm",
+        version: "0.1.0"
+      }
     }
   });
 }
