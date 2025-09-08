@@ -5,14 +5,29 @@ import { makeSupabase } from "@/lib/supabase";
  * Optional: super-simple token guard using a query param (?token=...).
  * Use this only as a stopgap until you wire OAuth.
  */
+function getAuthTokenFromHeader(req: NextRequest): string | null {
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization");
+  if (!auth) return null;
+  const m = auth.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1] : null;
+}
+
 function assertToken(req: NextRequest) {
   const required = process.env.MCP_TOKEN;
   if (!required) return; // no token configured
   
-  const got = req.nextUrl.searchParams.get("token");
+  const got = req.nextUrl.searchParams.get("token") || getAuthTokenFromHeader(req);
   if (got !== required) {
     throw new Response("Unauthorized", { status: 401 });
   }
+}
+
+function withCors(res: NextResponse) {
+  res.headers.set("Access-Control-Allow-Origin", "*");
+  res.headers.set("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.headers.set("Access-Control-Max-Age", "86400");
+  return res;
 }
 
 /**
@@ -124,7 +139,7 @@ export async function GET(req: NextRequest) {
   }
   
   // For GET requests, return server info in MCP format
-  return NextResponse.json({
+  return withCors(NextResponse.json({
     jsonrpc: "2.0",
     id: 1,
     result: {
@@ -137,7 +152,7 @@ export async function GET(req: NextRequest) {
         version: "0.1.0"
       }
     }
-  });
+  }));
 }
 
 export async function POST(req: NextRequest) {
@@ -147,5 +162,10 @@ export async function POST(req: NextRequest) {
     return resp; 
   }
   
-  return handleMcpRequest(req);
+  const res = await handleMcpRequest(req);
+  return withCors(res);
+}
+
+export async function OPTIONS() {
+  return withCors(new NextResponse(null, { status: 204 }));
 }
